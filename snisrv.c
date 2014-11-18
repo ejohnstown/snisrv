@@ -1,4 +1,4 @@
-/* sniserver.c
+/* snisrv.c
  *
  * Copyright (C) 2014 wolfSSL Inc.
  *
@@ -27,25 +27,31 @@
 #include <cyassl/test.h>
 
 
-const char* Key_Filename = "./certs/key.pem";
-const char* CA_Cert_Filename = "./certs/ca-cert.pem";
+const char* Key_Filename = "../cyassl/certs/server-key.pem";
+const char* CA_Cert_Filename = "../cyassl/certs/ca-cert.pem";
 
-const char* SvrA_Name = "svrA.dalek.local";
-const char* SvrA_Cert_Filename = "./certs/svrA-cert.pem";
+const char* SvrA_Name = "svrA";
+const char* SvrA_Cert_Filename = "../cyassl/certs/server-cert.pem";
 const char* SvrA_Html =
     "<html>\r\n"
     "<head><title>Thanks!</title></head>\r\n"
     "<body>Hello world! I'm server A!</body>\r\n"
     "</html>\r\n";
 
-const char* SvrB_Name = "svrB.dalek.local";
-const char* SvrB_Cert_Filename = "./certs/svrB-cert.pem";
+const char* SvrB_Name = "svrB";
+const char* SvrB_Cert_Filename = "../cyassl/certs/server-cert.pem";
 const char* SvrB_Html =
     "<html>\r\n"
     "<head><title>Thanks!</title></head>\r\n"
     "<body>Hello world! I'm server B!</body>\r\n"
     "</html>\r\n";
 
+
+const char* Default_Html =
+    "<html>\r\n"
+    "<head><title>Thanks!</title></head>\r\n"
+    "<body>Hello world! I'm generic server!</body>\r\n"
+    "</html>\r\n";
 
 static inline void errsys(const char* msg)
 {
@@ -66,8 +72,9 @@ static CYASSL_CTX* setup_new_cyassl_ctx(const char* keyFilename,
         CyaSSL_CTX_load_verify_locations(newCtx, caCertFilename, NULL);
         CyaSSL_CTX_use_PrivateKey_file(newCtx, keyFilename, SSL_FILETYPE_PEM);
         CyaSSL_CTX_use_certificate_file(newCtx, certFilename, SSL_FILETYPE_PEM);
-        CyaSSL_CTX_UseSNI(newCtx, CYASSL_SNI_HOST_NAME,
-                          hostName, strlen(hostName));
+        if (hostName)
+            CyaSSL_CTX_UseSNI(newCtx, CYASSL_SNI_HOST_NAME,
+                              hostName, strlen(hostName));
     }
 
     return newCtx;
@@ -116,8 +123,13 @@ main(void)
             errsys("unable to create server B ctx");
         html = SvrB_Html;
     }
-    else
-        errsys("unknown server requested");
+    else {
+        ctx = setup_new_cyassl_ctx(Key_Filename, SvrA_Cert_Filename,
+                                   CA_Cert_Filename, SvrA_Name);
+        if (ctx == NULL)
+            errsys("unable to create server default ctx");
+        html = Default_Html;
+    }
 
     ssl = CyaSSL_new(ctx);
     if (ssl == NULL)
