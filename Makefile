@@ -1,9 +1,9 @@
-all: snisrv
+all: snisvr
 
-snisrv: snisrv.c
-	clang -lcyassl -o snisrv snisrv.c
+snisvr: snisvr.c
+	clang -L/usr/local/lib -I/usr/local/include -lcyassl -o snisvr snisvr.c
 
 clean:
-	rm -rf snisrv
+	rm -rf snisvr
 
 .PHONY: all clean
