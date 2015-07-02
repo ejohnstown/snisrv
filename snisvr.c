@@ -96,7 +96,7 @@ main(void)
 
     CyaSSL_Init();
 
-    tcp_accept(&listenFd, &clientFd, NULL, 11111, 0, 0);
+    tcp_accept(&listenFd, &clientFd, NULL, 11111, 0, 0, 0);
     ret = recv(clientFd, peek, peekSz, MSG_PEEK);
     if (ret < 0)
         errsys("didn't peek correctly");
